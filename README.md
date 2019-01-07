@@ -21,13 +21,13 @@ Log in page<br>
 Choosing the subject for which the test is to be given<br>
 ![screenshot 121](https://user-images.githubusercontent.com/46050294/50786076-7ebc0d00-12d8-11e9-964e-fd55f712239c.png)
 
-Choosing the respective quiz number
+Choosing the respective quiz number<br>
 ![screenshot 122](https://user-images.githubusercontent.com/46050294/50786127-aa3ef780-12d8-11e9-9b67-461f6cc14d99.png)
 
-The format of the questions
+The format of the questions<br>
 ![screenshot 123](https://user-images.githubusercontent.com/46050294/50786179-c773c600-12d8-11e9-9a1b-0f857d727aec.png)
 
-The final scores of all the candidates
+The final scores of all the candidates<br>
 ![screenshot 124](https://user-images.githubusercontent.com/46050294/50786246-f8ec9180-12d8-11e9-86a1-3f667a958957.png)
 
 
