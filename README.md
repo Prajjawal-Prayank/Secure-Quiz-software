@@ -41,7 +41,19 @@ The format of the questions<br>
 The final scores of all the candidates<br>
 ![screenshot 124](https://user-images.githubusercontent.com/46050294/50786246-f8ec9180-12d8-11e9-86a1-3f667a958957.png)
 
+# Instructions:-
+The starting page of the quiz system is named "Home.java" . The initial login credentials of the Teacher are 
+username :- "admin" and password :- "qwerty" .
 
+
+# Contribute
+- Feel free to report issues and bugs.It will be helpful for future launches of application.
+- All Suggestions are welcome.
+- Fork repository and Contribute.
+
+
+# Feedback
+Feel free to send feedback on Email.
 
 
 
