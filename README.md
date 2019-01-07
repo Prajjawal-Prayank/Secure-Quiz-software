@@ -11,13 +11,13 @@ respective tests .
 
 
 # Features :-
--Separate "Log in" system for students and teachers
--Teacher can add various subjects
--Teacher can add multiple quizes under each subject
--Teacher can add answers to the questions
--Every login will have the same questions but in different order.The options will be in different order as well.
--The students can see thier scores at the end of the test
--A profile dashboard where final scores of all the students can be seen
+- Separate "Log in" system for students and teachers
+- Teacher can add various subjects
+- Teacher can add multiple quizes under each subject
+- Teacher can add answers to the questions
+- Every login will have the same questions but in different order.The options will be in different order as well.
+- The students can see thier scores at the end of the test
+- A profile dashboard where final scores of all the students can be seen
 
 
 
