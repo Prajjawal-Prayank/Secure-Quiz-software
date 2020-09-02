@@ -1,9 +1,11 @@
 
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import javax.swing.JOptionPane;
+import java.text.MessageFormat;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -25,7 +27,7 @@ public class Question extends javax.swing.JFrame {
     }
     
     QuizNumber qn=new QuizNumber();
-    String tablename=qn.currentTable;
+    String tableName=qn.currentTable;
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -132,7 +134,7 @@ public class Question extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jButton3)
-                .addGap(91, 91, 91)
+                .addGap(112, 112, 112)
                 .addComponent(add)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(clear)
@@ -186,11 +188,6 @@ option1.setText("");
 option2.setText("");
 option3.setText("");
 option4.setText("");
-/*op1.setSelected(false);
-op2.setSelected(false);
-op3.setSelected(false);
-op4.setSelected(false);
-  */
 buttonGroup1.clearSelection();
 // TODO add your handling code here:
     }//GEN-LAST:event_clearActionPerformed
@@ -215,43 +212,50 @@ if(op4.isSelected()==true)
     answer=option4.getText();
         
         
-if(op1.isSelected()==false && op2.isSelected()==false && op3.isSelected()==false && op4.isSelected()==false ) 
+//if(op1.isSelected()==false && op2.isSelected()==false && op3.isSelected()==false && op4.isSelected()==false ) 
+if(answer.equals(""))
     JOptionPane.showMessageDialog(null, "Select atleast one answer ");
 
 else if(option1.getText().equals("") || option2.getText().equals("") || option3.getText().equals("") || option4.getText().equals(""))
-    JOptionPane.showMessageDialog(null, "Give 4 options");
+    JOptionPane.showMessageDialog(null, "Please provide 4 options");
 
 else if(question.getText().equals(""))
     JOptionPane.showMessageDialog(null, "It is mandatory to write the question to add it in quiz!");
 
 else
 {
+    Connection connection = null;
     try{
-     Class.forName("com.mysql.jdbc.Driver");
-       String url = "jdbc:mysql://localhost/softablitz";
-      Connection connection = DriverManager.getConnection(url, "root", "");
-      Statement st=connection.createStatement();
-      String query1 = "Insert into "+tablename+ " values (?,?,?,?,?,?);"   ;
-      PreparedStatement preStat = connection.prepareStatement(query1);
-      preStat.setString(1, question.getText());
-      preStat.setString(2, option1.getText());
-      preStat.setString(3, option2.getText());
-      preStat.setString(4, option3.getText());
-      preStat.setString(5, option4.getText());
-      preStat.setString(6,answer);
-      preStat.executeUpdate();
+        Class.forName("com.mysql.jdbc.Driver");
+        String url = "jdbc:mysql://localhost/softablitz";
+        connection = DriverManager.getConnection(url, "root", "");
+        String query1 = "Insert into " + tableName 
+                +" (question,option1,option2,option3,option4,answer) values (?,?,?,?,?,?);"   ;
+        PreparedStatement preStat = connection.prepareStatement(query1);
+        preStat.setString(1, question.getText());
+        preStat.setString(2, option1.getText());
+        preStat.setString(3, option2.getText());
+        preStat.setString(4, option3.getText());
+        preStat.setString(5, option4.getText());
+        preStat.setString(6,answer);    
+        preStat.executeUpdate();
+        
+        JOptionPane.showMessageDialog(null,"Qustion successfully added");
       
-      question.setText("");
-      option1.setText("");
-      option2.setText("");
-      option3.setText("");
-      option4.setText("");
-      buttonGroup1.clearSelection();
+        question.setText("");
+        option1.setText("");
+        option2.setText("");
+        option3.setText("");
+        option4.setText("");
+        buttonGroup1.clearSelection();
     }
     catch(Exception e)
     {
         System.out.println("Exeution failed at line :-" + e);
     }
+    finally{
+        try{connection.close();} catch(Exception e) {}            
+    } 
 }
 
 

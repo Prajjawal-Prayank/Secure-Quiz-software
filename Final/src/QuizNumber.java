@@ -6,7 +6,6 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import javax.swing.DefaultListModel;
 import javax.swing.JOptionPane;
-
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
@@ -45,6 +44,7 @@ DefaultListModel mod =new DefaultListModel();
         proceed = new javax.swing.JButton();
         add = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
+        delete = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -76,6 +76,14 @@ DefaultListModel mod =new DefaultListModel();
             }
         });
 
+        delete.setText("Delete Quiz");
+        delete.setEnabled(false);
+        delete.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                deleteActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -86,12 +94,14 @@ DefaultListModel mod =new DefaultListModel();
                         .addGap(116, 116, 116)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 184, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 173, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGroup(layout.createSequentialGroup()
                                     .addComponent(proceed)
-                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(add))
-                                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 173, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                        .addComponent(delete, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(add, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))))
                     .addGroup(layout.createSequentialGroup()
                         .addContainerGap()
                         .addComponent(jButton2)))
@@ -109,7 +119,9 @@ DefaultListModel mod =new DefaultListModel();
                     .addComponent(proceed)
                     .addComponent(add))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jButton2)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jButton2)
+                    .addComponent(delete))
                 .addContainerGap(42, Short.MAX_VALUE))
         );
 
@@ -121,38 +133,42 @@ String newQuiz =JOptionPane.showInputDialog("Enter quiz name");
 list.setModel(mod);
 if(newQuiz.equals(""))
     JOptionPane.showMessageDialog(null, "Enter a quiz name first");
+else if(mod.contains(newQuiz))
+    JOptionPane.showMessageDialog(null, "Quiz with this name already exists");
 else
 {
-mod.addElement(newQuiz);
-  try{
-     Class.forName("com.mysql.jdbc.Driver");
-       String url = "jdbc:mysql://localhost/softablitz";
-      Connection connection = DriverManager.getConnection(url, "root", "");
-      Statement st=connection.createStatement();
+    Connection connection =null;
+    Subjects subject=new Subjects();
+    try{
+        Class.forName("com.mysql.jdbc.Driver");
+        String url = "jdbc:mysql://localhost/softablitz";
+        connection = DriverManager.getConnection(url, "root", "");
         String query1 ="INSERT INTO subjects VALUES (?,?);";
         PreparedStatement preStat = connection.prepareStatement(query1);
-        preStat.setString(1, new Subjects().subjectName);
+        preStat.setString(1, subject.subjectName);
         preStat.setString(2, newQuiz);
-         preStat.executeUpdate();
+        preStat.executeUpdate();
+        mod.addElement(newQuiz);
          
-        Subjects subject=new Subjects();
-        tableName= subject.subjectName+"_" + newQuiz;//for having specific table name
-             String query2 = "Create table " + tableName 
-                + " (question varchar(250) Primary Key,"
-                + " option1 varchar(150),"
-                + " option2 varchar(150), "
-                + " option3 varchar(150),"
-                + " option4 varchar(150),"
-                + " answer varchar(150));";
+        tableName= Subjects.subjectName+"_" + newQuiz;//for having specific table name
+        String query2 = "Create table "+   tableName
+            + " (id int primary key auto_increment,"    
+            + " question varchar(250) ,"
+            + " option1 varchar(150),"
+            + " option2 varchar(150), "
+            + " option3 varchar(150),"
+            + " option4 varchar(150),"
+            + " answer varchar(150));";
         PreparedStatement psmt = connection.prepareStatement(query2);
-         psmt.executeUpdate();
-         
-         
+        psmt.executeUpdate();    
   }
-  catch(Exception e)
-      {
+  catch(Exception e){
     System.out.println("Exeution failed at line :-" + e);
-}
+     e.printStackTrace();
+    }
+  finally{
+        try{connection.close();} catch(Exception e) {}            
+    }
 
 }    
         // TODO add your handling code here:
@@ -162,44 +178,53 @@ mod.addElement(newQuiz);
 if(list.getSelectedIndex()>=0)
 {
     quizName=list.getSelectedValue().toString();
+    Subjects subject=new Subjects();
+    currentTable= subject.subjectName+"_"+ list.getSelectedValue();
+    Connection connection=null;
+    try{
+        Class.forName("com.mysql.jdbc.Driver");
+        String url = "jdbc:mysql://localhost/softablitz";
+        connection = DriverManager.getConnection(url, "root", "");
+        String query="Select count(id) from " + currentTable + ";";
+        PreparedStatement preStat = connection.prepareStatement(query);
+        ResultSet result = preStat.executeQuery();
+        result.next();
+        int question_count=result.getInt("count(id)");
+        if(question_count==0)
+            JOptionPane.showMessageDialog(null,"This quiz has no questions..!");
+        else if(new Signup().accessor.equals("teacher")) 
+        { 
+            new Question().setVisible(true);
+            dispose();
+        }
+        else
+        {
+            query="Select count(*),marks from marks where registration_no=? and quiz=?;";
+            preStat = connection.prepareStatement(query);
+            preStat.setInt(1, Login.regNo);
+            preStat.setString(2,currentTable);
+            result = preStat.executeQuery();
+            result.next();
+            if(result.getInt("count(*)")==1)
+                JOptionPane.showMessageDialog(null, "You have already given the test."+
+                        "\n Your score :-" +result.getInt("marks") );
+            else
+            {
+                Test test=new Test();
+                test.display_first();
+                test.setVisible(true);
+                dispose();
+            }
+        }
+    }
 
-      Subjects subject=new Subjects();
-     //   tableName= subject.subjectName+"_" + quizName;//for having specific table name
-        currentTable= subject.subjectName+"_"+ list.getSelectedValue();
-        try{
-            if(new Signup().accessor.equals("teacher")) 
-         {
-   /*  Class.forName("com.mysql.jdbc.Driver");
-       String url = "jdbc:mysql://localhost/softablitz";
-      Connection connection = DriverManager.getConnection(url, "root", "");
-      Statement st=connection.createStatement();
-        String query1 = "Create table " + tableName 
-                + " (question varchar(250) Primary Key,"
-                + " option1 varchar(150),"
-                + " option2 varchar(150), "
-                + " option3 varchar(150),"
-                + " option4 varchar(150),"
-                + " answer varchar(150));";
-        PreparedStatement preStat = connection.prepareStatement(query1);
-         preStat.executeUpdate();
-       */  
-         new Question().setVisible(true);
-        dispose();
-         }
-         else
-         {
-             Test test=new Test();
-             test.display_first();
-             test.setVisible(true);
-             dispose();
-         }
-}
-
-catch(Exception e )
-{
-    System.out.println("Exeution failed at line :-" + e);
-}
-
+    catch(Exception e )
+    {
+        System.out.println("Exeution failed at line :-" + e);
+    }
+    finally{
+        try{connection.close();} catch(Exception e){}
+    }
         
        
 }          
@@ -208,11 +233,48 @@ catch(Exception e )
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
 Subjects subject =new Subjects();
+if(Signup.accessor.equals("teacher"))
+{
+    subject.changePass.setEnabled(true);
+    subject.addSubject.setEnabled(true);
+    subject.access=1;
+}
 subject.setVisible(true);
 subject.display();
 dispose();
         // TODO add your handling code here:
     }//GEN-LAST:event_jButton2ActionPerformed
+
+    private void deleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteActionPerformed
+if(list.getSelectedIndex()>=0)
+{
+    String quiz=list.getSelectedValue().toString();
+    tableName= Subjects.subjectName+"_" + quiz;
+    Connection connection=null;
+    try{
+        Class.forName("com.mysql.jdbc.Driver");
+        String url = "jdbc:mysql://localhost/softablitz";
+        connection = DriverManager.getConnection(url, "root", "");
+        String query1 = "Drop table "+tableName+" ;";
+        PreparedStatement preStat = connection.prepareStatement(query1);
+        preStat.executeUpdate();
+        mod.removeElement(quiz);
+        query1 ="Delete from subjects where subject=? and quiz=?;";
+        preStat = connection.prepareStatement(query1);
+        preStat.setString(1,Subjects.subjectName);
+        preStat.setString(2, quiz);
+        preStat.executeUpdate();
+    }
+    catch(Exception e){
+        System.out.println("Exeution failed at line :-" + e);
+    }
+    finally{
+        try{connection.close();} catch(Exception e){}
+    }
+}  
+else
+    JOptionPane.showMessageDialog(null,"You need to select a quiz to remove it..!") ;
+    }//GEN-LAST:event_deleteActionPerformed
 
     /**
      * @param args the command line arguments
@@ -220,27 +282,30 @@ dispose();
     
      void display()   //to display quizes already present in database
     {
+        Connection connection =null; 
         try{
             list.setModel(mod);
-    String quiz="";
-     Class.forName("com.mysql.jdbc.Driver");
-       String url = "jdbc:mysql://localhost/softablitz";
-      Connection connection = DriverManager.getConnection(url, "root", "");
-      Statement st=connection.createStatement();
-        String query1 = "Select quiz from subjects where subject ='"+new Subjects().subjectName+"' && "
-                + " quiz is NOT NULL ;";
-        PreparedStatement preStat = connection.prepareStatement(query1);
-         ResultSet result = preStat.executeQuery();
-          while(result.next()) {
-              quiz=result.getString("quiz");
+            String quiz="",sbjct=new Subjects().subjectName;
+            Class.forName("com.mysql.jdbc.Driver");
+            String url = "jdbc:mysql://localhost/softablitz";
+            connection = DriverManager.getConnection(url, "root", "");
+            String query1 = "Select quiz from subjects where subject=? && quiz is NOT NULL ;";
+            PreparedStatement preStat = connection.prepareStatement(query1);
+            preStat.setString(1,sbjct);
+            ResultSet result = preStat.executeQuery();
+            while(result.next()) {
+               quiz=result.getString("quiz");
                mod.addElement(quiz);
           }
         
 }
-catch(Exception e )
-{
-    System.out.println("Exeution failed at line :-" + e);
-}
+    catch(Exception e )
+    {
+        System.out.println("Exeution failed at line :-" + e);
+    }
+    finally{
+        try{connection.close();} catch(Exception e) {}            
+       }    
 
     }
     
@@ -281,6 +346,7 @@ catch(Exception e )
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     public javax.swing.JButton add;
+    public javax.swing.JButton delete;
     private javax.swing.JButton jButton2;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JScrollPane jScrollPane1;

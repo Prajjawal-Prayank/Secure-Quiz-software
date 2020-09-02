@@ -143,48 +143,49 @@ public static int studentLogin;
     }// </editor-fold>//GEN-END:initComponents
 
     private void loginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loginActionPerformed
-try{
-    String pass=String.valueOf(password.getPassword());
-    Integer registrationNumber=Integer.parseInt(reg.getText());
-    String retrievedPass="";int retrievedReg=0;
-     Class.forName("com.mysql.jdbc.Driver");
-       String url = "jdbc:mysql://localhost/softablitz";
-      Connection connection = DriverManager.getConnection(url, "root", "");
-      Statement st=connection.createStatement();
-        String query1 = "Select * from student where reg_no= "+registrationNumber
-                +" && password='"+pass+"';" ;
-        PreparedStatement preStat = connection.prepareStatement(query1);
-         ResultSet result = preStat.executeQuery();
-          while(result.next()) {
-               retrievedReg=result.getInt("reg_no");
-               retrievedPass=result.getString("password");
-          }
-          if( retrievedReg==registrationNumber  && retrievedPass.equals(pass)   )
-          {
-              JOptionPane.showMessageDialog(null,"LogIn Successful");
-              studentLogin=1;
-              new Signup().accessor="student";
-              regNo= Integer.parseInt(reg.getText());
-              /*where to redirect*/
-              Subjects subject= new Subjects();
-        subject.setVisible(true);
-        subject.display();
-        dispose();
-          }
-          else
-              JOptionPane.showMessageDialog(null,"LogIn Failed");
-          
-          
-        /*where to redirect*/
-          
-          
-        
-}
-catch(Exception e )
-{
-    System.out.println("Exeution failed at line :-" + e);
-}
+    Connection connection=null;    
+    try{
+        String pass=String.valueOf(password.getPassword());
+        Integer registrationNumber=Integer.parseInt(reg.getText());
+        String retrievedPass="";int retrievedReg=0;
+        Class.forName("com.mysql.jdbc.Driver");
+        String url = "jdbc:mysql://localhost/softablitz";
+        connection = DriverManager.getConnection(url, "root", "");
+            String query = "SELECT * FROM student WHERE reg_no = ?  ";
+            PreparedStatement preStat = connection.prepareStatement(query);
+            preStat.setInt(1,registrationNumber );
+            ResultSet result = preStat.executeQuery();
+            while(result.next()) {
+                retrievedReg=result.getInt("reg_no");
+                retrievedPass=result.getString("password");
+            }
+            
+            byte[] salt = Signup.getSalt();
+            String securePassword = Signup.getSecurePassword(pass, salt);
+            
+            if( retrievedReg==registrationNumber  && retrievedPass.equals(securePassword)   )
+            {
+                JOptionPane.showMessageDialog(null,"LogIn Successful");
+                studentLogin=1;
+                new Signup().accessor="student";
+                regNo= Integer.parseInt(reg.getText());
+                /*where to redirect*/
+                Subjects subject= new Subjects();
+                subject.setVisible(true);
+                subject.display();
+                dispose();
+            }
+            else
+                JOptionPane.showMessageDialog(null,"LogIn Failed. Please check login credentials and try again.");
 
+}
+    catch(Exception e )
+    {
+        System.out.println("Exeution failed at line :-" + e);
+    }
+    finally{
+            try{connection.close();} catch(Exception e) {}            
+        } 
 
         
 // TODO add your handling code here:
@@ -192,7 +193,7 @@ catch(Exception e )
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
 dispose();
-        new TeacherLogin().setVisible(true);
+new TeacherLogin().setVisible(true);
         // TODO add your handling code here:
     }//GEN-LAST:event_jButton2ActionPerformed
 

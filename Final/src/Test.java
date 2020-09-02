@@ -10,6 +10,8 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.*;
 import javax.swing.JOptionPane;
+import java.util.Timer;
+import java.util.TimerTask;
 /**
  *
  * @author Acer
@@ -23,13 +25,18 @@ public class Test extends javax.swing.JFrame {
         initComponents();
     }
  
-  static  ArrayList<String> query=new ArrayList<>();
+  static  ArrayList<String> options=new ArrayList<>();
+  static  ArrayList<Integer> questions = new ArrayList<>();
   static String opt1,opt2,opt3,opt4,ans,query2,query3,query4,query5,query6;
   static int count =0;
- // static int size=query.size();
   static  int[] arr=new int[100];  
   static int i;
   static int correct=0;
+  static int question_count=0;
+  static String option1,option2,option3,option4;
+  static Timer timer=null;
+  
+  
    
     /**
      * This method is called from within the constructor to initialize the form.
@@ -54,6 +61,8 @@ public class Test extends javax.swing.JFrame {
         marks = new javax.swing.JButton();
         end = new javax.swing.JButton();
         scores = new javax.swing.JButton();
+        clock = new javax.swing.JLabel();
+        jLabel1 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -126,6 +135,13 @@ public class Test extends javax.swing.JFrame {
             }
         });
 
+        clock.setBackground(new java.awt.Color(51, 0, 51));
+        clock.setFont(new java.awt.Font("Tahoma", 1, 24)); // NOI18N
+        clock.setForeground(new java.awt.Color(51, 0, 204));
+
+        jLabel1.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        jLabel1.setText("Time  Remaining -");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -157,11 +173,19 @@ public class Test extends javax.swing.JFrame {
                         .addGap(47, 47, 47)
                         .addComponent(scores)))
                 .addContainerGap(69, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 123, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(clock, javax.swing.GroupLayout.PREFERRED_SIZE, 79, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(39, 39, 39)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(clock, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 88, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addComponent(op1)
@@ -182,70 +206,58 @@ public class Test extends javax.swing.JFrame {
                     .addComponent(marks)
                     .addComponent(end)
                     .addComponent(scores))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap())
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
     private void previousActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_previousActionPerformed
+count--;
 if(count<0)
-{        try
 {
-     Class.forName("com.mysql.jdbc.Driver");
-       String url = "jdbc:mysql://localhost/softablitz";
-      Connection connection = DriverManager.getConnection(url, "root", "");
-      Statement st=connection.createStatement();
-    question.setText(query.get(--count));
-          query2="Select option1 from "+  new QuizNumber().currentTable 
-                 + "  where question='"+query.get(count)+"' ;";
-          query3="Select option2 from "+  new QuizNumber().currentTable
-                 + "  where question='"+query.get(count)+"' ;";
-          query4="Select option3 from "+  new QuizNumber().currentTable
-                 + "  where question='"+query.get(count)+"' ;";
-          query5="Select option4 from "+  new QuizNumber().currentTable
-                 + "  where question='"+query.get(count)+"' ;";
-          query6="Select answer from "+  new QuizNumber().currentTable
-                 + "  where question='"+query.get(count)+"' ;";
-          
- //         count++;
-          
-          PreparedStatement pmst1 = connection.prepareStatement(query2);
-         ResultSet r1 = pmst1.executeQuery();
-         r1.next();             //to move the cursor in the first row
-         opt1=r1.getString("option1");
-         
-          PreparedStatement pmst2 = connection.prepareStatement(query3);
-         ResultSet r2 = pmst2.executeQuery();
-         r2.next();
-         opt2=r2.getString("option2");
-         
-          PreparedStatement pmst3 = connection.prepareStatement(query4);
-         ResultSet r3 = pmst3.executeQuery();
-         r3.next();
-         opt3=r3.getString("option3");
-         
-          PreparedStatement pmst4 = connection.prepareStatement(query5);
-         ResultSet r4 = pmst4.executeQuery();
-         r4.next();
-         opt4=r4.getString("option4");
-         
-          PreparedStatement pmst5 = connection.prepareStatement(query6);
-         ResultSet r5 = pmst5.executeQuery();
-         r5.next();
-         ans=r5.getString("answer");
-                  
-          op1.setText(opt1);
-          op2.setText(opt2);
-          op3.setText(opt3);
-          op4.setText(opt4);
-        
+    JOptionPane.showMessageDialog(null,"This is the first question in the test");
+    if(count<0)
+        count=0;
 }
-catch(Exception e )
+else
+{        
+    Connection connection = null;
+    try
+    {
+        Class.forName("com.mysql.jdbc.Driver");
+        String url = "jdbc:mysql://localhost/softablitz";
+        connection = DriverManager.getConnection(url, "root", "");
+        String query="Select question,option1,option2,option3,option4 from "+QuizNumber.currentTable
+                        + " where id="+ questions.get(count);
+        PreparedStatement preStat = connection.prepareStatement(query);
+        ResultSet result = preStat.executeQuery();
+        result.next();
+
+        option1=result.getString("option1");
+        option2=result.getString("option2");
+        option3=result.getString("option3");
+        option4=result.getString("option4");
+        options.clear();
+        options.add(option1);
+        options.add(option2);
+        options.add(option3);
+        options.add(option4);
+        Collections.shuffle(options);
+        
+        question.setText(result.getString("question"));
+        op1.setText(options.get(0));
+        op2.setText(options.get(1));
+        op3.setText(options.get(2));
+        op4.setText(options.get(3));
+    }
+    catch(Exception e )
     {
     System.out.println("Exeution failed at line :-" + e);
     }
-
+    finally{
+    try{connection.close();} catch(Exception e) {}            
+    }
 }       
 
 // TODO add your handling code here:
@@ -262,16 +274,35 @@ if(op3.isSelected()==true)
 if(op4.isSelected()==true)
     receivedAnswer=op4.getText();
 
-buttonGroup1.clearSelection();
+Connection connection = null;
+try{
+    Class.forName("com.mysql.jdbc.Driver");
+    String url = "jdbc:mysql://localhost/softablitz";
+    connection= DriverManager.getConnection(url, "root", "");
+    String query="Select answer from " + QuizNumber.currentTable
+                    + " where id="+questions.get(count) ; 
+    PreparedStatement preStat = connection.prepareStatement(query);
+    ResultSet result = preStat.executeQuery();
+    result.next();
+    ans=result.getString("answer");
+    if( receivedAnswer.equals(ans) )
+        arr[count]=1;
+    else
+        arr[count]=0;
+    buttonGroup1.clearSelection();
+    JOptionPane.showMessageDialog(null, "your answer was submitted.");
+}
+catch(Exception e )
+{
+System.out.println("Exeution failed at line :-" + e);
+}
+finally{
+    try{connection.close();} catch(Exception e) {}            
+}  
 
 
-
-if( receivedAnswer.equals(ans) )
-    arr[count]=1;
-else
-    arr[count]=0;
-
-     JOptionPane.showMessageDialog(null, "your answer was submitted.");
+    
+    
         
         // TODO add your handling code here:
     }//GEN-LAST:event_submitActionPerformed
@@ -281,72 +312,58 @@ else
     }//GEN-LAST:event_op2ActionPerformed
 
     private void clearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearActionPerformed
-/*op1.setSelected(false);
-op2.setSelected(false);
-op3.setSelected(false);
-op4.setSelected(false);*/
 buttonGroup1.clearSelection();
         // TODO add your handling code here:
     }//GEN-LAST:event_clearActionPerformed
 
     private void nextActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nextActionPerformed
-try
+count++;
+if(count>=question_count)
 {
-     Class.forName("com.mysql.jdbc.Driver");
-       String url = "jdbc:mysql://localhost/softablitz";
-      Connection connection = DriverManager.getConnection(url, "root", "");
-      Statement st=connection.createStatement();
-    question.setText(query.get(++count));
-          query2="Select option1 from "+  new QuizNumber().currentTable 
-                 + "  where question='"+query.get(count)+"' ;";
-          query3="Select option2 from "+  new QuizNumber().currentTable
-                 + "  where question='"+query.get(count)+"' ;";
-          query4="Select option3 from "+  new QuizNumber().currentTable
-                 + "  where question='"+query.get(count)+"' ;";
-          query5="Select option4 from "+  new QuizNumber().currentTable
-                 + "  where question='"+query.get(count)+"' ;";
-          query6="Select answer from "+  new QuizNumber().currentTable
-                 + "  where question='"+query.get(count)+"' ;";
-          
- //         count++;
-          
-          PreparedStatement pmst1 = connection.prepareStatement(query2);
-         ResultSet r1 = pmst1.executeQuery();
-         r1.next();             //to move the cursor in the first row
-         opt1=r1.getString("option1");
-         
-          PreparedStatement pmst2 = connection.prepareStatement(query3);
-         ResultSet r2 = pmst2.executeQuery();
-         r2.next();
-         opt2=r2.getString("option2");
-         
-          PreparedStatement pmst3 = connection.prepareStatement(query4);
-         ResultSet r3 = pmst3.executeQuery();
-         r3.next();
-         opt3=r3.getString("option3");
-         
-          PreparedStatement pmst4 = connection.prepareStatement(query5);
-         ResultSet r4 = pmst4.executeQuery();
-         r4.next();
-         opt4=r4.getString("option4");
-         
-          PreparedStatement pmst5 = connection.prepareStatement(query6);
-         ResultSet r5 = pmst5.executeQuery();
-         r5.next();
-         ans=r5.getString("answer");
-                  
-          op1.setText(opt1);
-          op2.setText(opt2);
-          op3.setText(opt3);
-          op4.setText(opt4);
-        
+    JOptionPane.showMessageDialog(null,"This is the last question in the test");
+    if(count>question_count)
+        count=question_count;
 }
-catch(Exception e )
+else
+{
+    Connection connection = null;
+    try
+    {
+        Class.forName("com.mysql.jdbc.Driver");
+        String url = "jdbc:mysql://localhost/softablitz";
+        connection= DriverManager.getConnection(url, "root", "");
+        String query="Select question,option1,option2,option3,option4 from "+QuizNumber.currentTable
+                        + " where id="+ questions.get(count);
+        PreparedStatement preStat = connection.prepareStatement(query);
+        ResultSet result = preStat.executeQuery();
+        result.next();
+
+        option1=result.getString("option1");
+        option2=result.getString("option2");
+        option3=result.getString("option3");
+        option4=result.getString("option4");
+        options.clear();
+        options.add(option1);
+        options.add(option2);
+        options.add(option3);
+        options.add(option4);
+        Collections.shuffle(options);
+        
+        question.setText(result.getString("question"));
+        op1.setText(options.get(0));
+        op2.setText(options.get(1));
+        op3.setText(options.get(2));
+        op4.setText(options.get(3));
+
+    }
+    catch(Exception e )
     {
     System.out.println("Exeution failed at line :-" + e);
     }
-
-        
+    finally{
+        try{connection.close();} catch(Exception e) {}            
+    }  
+}
 // TODO add your handling code here:
     }//GEN-LAST:event_nextActionPerformed
 
@@ -358,7 +375,7 @@ JOptionPane.showMessageDialog(null, "total marks is "+correct);
     }//GEN-LAST:event_marksActionPerformed
 
     private void endActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_endActionPerformed
-for(int i=0; i<query.size(); i++)
+for(int i=0; i<question_count; i++)
     if(arr[i] == 1)
         correct++;
 marks.setEnabled(true);
@@ -367,60 +384,68 @@ previous.setEnabled(false);
 next.setEnabled(false);
 submit.setEnabled(false);
 clear.setEnabled(false);
+Connection connection = null;
 try{
-      Class.forName("com.mysql.jdbc.Driver");
-       String url = "jdbc:mysql://localhost/softablitz";
-      Connection connection = DriverManager.getConnection(url, "root", "");
-      Statement st=connection.createStatement();
-      String q="Update student set marks =" + correct 
-              + " where reg_no =" + new Login().regNo +" ;";
-      PreparedStatement preStat = connection.prepareStatement(q);
-      preStat.executeUpdate();
+    Class.forName("com.mysql.jdbc.Driver");
+    String url = "jdbc:mysql://localhost/softablitz";
+    connection=DriverManager.getConnection(url, "root", "");
+    String query="Insert into marks values (?,?,?);";
+    PreparedStatement preStat = connection.prepareStatement(query);
+    preStat.setInt(1,Login.regNo);
+    preStat.setString(2,QuizNumber.currentTable);  
+    preStat.setInt(3,correct);
+    preStat.executeUpdate();
 }
 
 catch(Exception e )
-    {
-    System.out.println("Execution failed at line :-" + e);
-    }
-
+{
+System.out.println("Execution failed at line :-" + e);
+}
+finally{
+    try{connection.close();} catch(Exception e) {}            
+} 
         // TODO add your handling code here:
     }//GEN-LAST:event_endActionPerformed
 
     private void scoresActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_scoresActionPerformed
 Rankings ranking=new Rankings();
+Connection connection =  null;
 try{
     int registrationNumber,marks;
-       Class.forName("com.mysql.jdbc.Driver");
-       String url = "jdbc:mysql://localhost/softablitz";
-      Connection connection = DriverManager.getConnection(url, "root", "");
-      Statement st=connection.createStatement();
-      String qq="Select reg_no,marks from student order by marks desc;";
-      PreparedStatement preStat = connection.prepareStatement(qq);
-         ResultSet result = preStat.executeQuery();
-         int i=1;String a,b,c;
-          while(result.next()) {
-               registrationNumber=result.getInt("reg_no");
-               marks=result.getInt("marks");
-               a="";a+=i;
-               b="";b+=registrationNumber;
-               c="";c+=marks;
-               ranking.ta.append(a);
-               ranking.ta.append("          ");
-               ranking.ta.append(b);
-               ranking.ta.append("                     ");
-               ranking.ta.append(c);
-               ranking.ta.append("\n");
-               i++;
-               ranking.setVisible(true);
-               dispose();
-          }
+    Class.forName("com.mysql.jdbc.Driver");
+    String url = "jdbc:mysql://localhost/softablitz";
+    connection=DriverManager.getConnection(url, "root", "");
+    Statement st=connection.createStatement();
+    String qq="Select registration_no,marks from marks where quiz=? order by marks desc;";
+    PreparedStatement preStat = connection.prepareStatement(qq);
+    preStat.setString(1,QuizNumber.currentTable);
+    ResultSet result = preStat.executeQuery();
+    int i=1;String a,b,c;
+    while(result.next()) {
+        registrationNumber=result.getInt("registration_no");
+        marks=result.getInt("marks");
+        a="";a+=i;
+        b="";b+=registrationNumber;
+        c="";c+=marks;
+        ranking.ta.append(a);
+        ranking.ta.append("          ");
+        ranking.ta.append(b);
+        ranking.ta.append("                     ");
+        ranking.ta.append(c);
+        ranking.ta.append("\n");
+        i++;
+        ranking.setVisible(true);
+        dispose();
+    }
       
 }   
 catch(Exception e )
-    {
+{
     System.out.println("Execution failed at line :-" + e);
-    }
-
+}
+finally{
+        try{connection.close();} catch(Exception e) {}            
+    } 
 // TODO add your handling code here:
     }//GEN-LAST:event_scoresActionPerformed
 
@@ -430,70 +455,87 @@ catch(Exception e )
     
     public static void display_first()
     {
-              try{
-                       String ques="";
-     Class.forName("com.mysql.jdbc.Driver");
-       String url = "jdbc:mysql://localhost/softablitz";
-      Connection connection = DriverManager.getConnection(url, "root", "");
-      Statement st=connection.createStatement();
-        String query1 = "Select question from " + new QuizNumber().currentTable + " ;";                
-        PreparedStatement preStat = connection.prepareStatement(query1);
-         ResultSet result = preStat.executeQuery();
-          while(result.next()) {
-              ques=result.getString("question");
-               query.add(ques);
-               Collections.shuffle(query);
-          }
-          //printing first question
-          question.append(query.get(0));
-          query2="Select option1 from "+  new QuizNumber().currentTable 
-                 + "  where question='"+query.get(0)+"' ;";
-          query3="Select option2 from "+  new QuizNumber().currentTable
-                 + "  where question='"+query.get(0)+"' ;";
-          query4="Select option3 from "+  new QuizNumber().currentTable
-                 + "  where question='"+query.get(0)+"' ;";
-          query5="Select option4 from "+  new QuizNumber().currentTable
-                 + "  where question='"+query.get(0)+"' ;";
-          query6="Select answer from "+  new QuizNumber().currentTable
-                 + "  where question='"+query.get(0)+"' ;";
-          PreparedStatement pmst1 = connection.prepareStatement(query2);
-         ResultSet r1 = pmst1.executeQuery();
-         r1.next();             //to move the cursor in the first row
-         opt1=r1.getString("option1");
-         
-          PreparedStatement pmst2 = connection.prepareStatement(query3);
-         ResultSet r2 = pmst2.executeQuery();
-         r2.next();
-         opt2=r2.getString("option2");
-         
-          PreparedStatement pmst3 = connection.prepareStatement(query4);
-         ResultSet r3 = pmst3.executeQuery();
-         r3.next();
-         opt3=r3.getString("option3");
-         
-          PreparedStatement pmst4 = connection.prepareStatement(query5);
-         ResultSet r4 = pmst4.executeQuery();
-         r4.next();
-         opt4=r4.getString("option4");
-         
-         PreparedStatement pmst5 = connection.prepareStatement(query6);
-         ResultSet r5 = pmst5.executeQuery();
-         r5.next();
-         ans=r5.getString("answer");
-                  
-          op1.setText(opt1);
-          op2.setText(opt2);
-          op3.setText(opt3);
-          op4.setText(opt4);
-        
-}
-catch(Exception e )
+        Connection connection = null;
+        try{
+            String ques="";
+            Class.forName("com.mysql.jdbc.Driver");
+            String url = "jdbc:mysql://localhost/softablitz";
+            connection = DriverManager.getConnection(url, "root", "");
+            String query="Select count(id) from " + QuizNumber.currentTable + ";";
+            PreparedStatement preStat = connection.prepareStatement(query);
+            ResultSet result = preStat.executeQuery();
+            result.next();
+            question_count=result.getInt("count(id)");
+            for(int i=1;i<=question_count;i++)
+                    questions.add(i);
+            Collections.shuffle(questions);
+            
+            
+            //printing first question
+            query="Select question,option1,option2,option3,option4 from "+QuizNumber.currentTable
+                    + " where id="+ questions.get(count);
+            preStat = connection.prepareStatement(query);
+            result = preStat.executeQuery();
+            result.next();
+            
+            option1=result.getString("option1");
+            option2=result.getString("option2");
+            option3=result.getString("option3");
+            option4=result.getString("option4");
+            options.clear();
+            options.add(option1);
+            options.add(option2);
+            options.add(option3);
+            options.add(option4);
+            Collections.shuffle(options);
+
+            question.setText(result.getString("question"));
+            op1.setText(options.get(0));
+            op2.setText(options.get(1));
+            op3.setText(options.get(2));
+            op4.setText(options.get(3));
+            
+            
+            timer = new Timer(); 
+            TimerTask task = new Helper(); 
+            Helper.time=15*60;
+            timer.schedule(task, 0, 1000);
+            
+    }
+    catch(Exception e )
     {
     System.out.println("Exeution failed at line :-" + e);
     }
-    }
+    finally{
+        try{connection.close();} catch(Exception e) {}            
+    }  
+
+}
     
     
+    
+    
+    
+    
+    static class Helper extends TimerTask 
+    { 
+        static int time;
+        
+        public void run() 
+        { 
+            int min=time/60,sec=time%60;
+            clock.setText(Integer.toString(min) + ":" + Integer.toString(sec));
+            time--;
+            if(time==0)
+            {
+                timer.cancel();
+                clock.setText("00:00");
+                end.doClick();
+            }
+        } 
+    } 
+  
+  
     
     
     public static void main(String args[]) {
@@ -523,63 +565,7 @@ catch(Exception e )
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                marks.setEnabled(false);
-               // new Test().setVisible(true);
-                
-            /*       try{
-                       String ques="";
-     Class.forName("com.mysql.jdbc.Driver");
-       String url = "jdbc:mysql://localhost/softablitz";
-      Connection connection = DriverManager.getConnection(url, "root", "");
-      Statement st=connection.createStatement();
-        String query1 = "Select question from " + new QuizNumber().tableName + " ;";                
-        PreparedStatement preStat = connection.prepareStatement(query1);
-         ResultSet result = preStat.executeQuery();
-          while(result.next()) {
-              ques=result.getString("question");
-               query.add(ques);
-               Collections.shuffle(query);
-          }
-          //printing first question
-          question.append(query.get(0));
-          query2="Select option1 from "+  new QuizNumber().tableName 
-                 + "  where question='"+query.get(0)+"' ;";
-          query3="Select option2 from "+  new QuizNumber().tableName 
-                 + "  where question='"+query.get(0)+"' ;";
-          query4="Select option3 from "+  new QuizNumber().tableName 
-                 + "  where question='"+query.get(0)+"' ;";
-          query5="Select option4 from "+  new QuizNumber().tableName 
-                 + "  where question='"+query.get(0)+"' ;";
-          query6="Select answer from "+  new QuizNumber().tableName 
-                 + "  where question='"+query.get(0)+"' ;";
-          PreparedStatement pmst1 = connection.prepareStatement(query2);
-         ResultSet r1 = pmst1.executeQuery();
-         opt1=r1.getString("option1");
-         
-          PreparedStatement pmst2 = connection.prepareStatement(query3);
-         ResultSet r2 = pmst2.executeQuery();
-         opt2=r2.getString("option2");
-         
-          PreparedStatement pmst3 = connection.prepareStatement(query4);
-         ResultSet r3 = pmst3.executeQuery();
-         opt3=r3.getString("option3");
-         
-          PreparedStatement pmst4 = connection.prepareStatement(query5);
-         ResultSet r4 = pmst4.executeQuery();
-         opt4=r4.getString("option4");
-                  
-          op1.setText(opt1);
-          op2.setText(opt2);
-          op3.setText(opt3);
-          op4.setText(opt4);
-        
-}
-catch(Exception e )
-    {
-    System.out.println("Exeution failed at line :-" + e);
-    }
-    */                
-         //  new Test().setVisible(true);
+                marks.setEnabled(false); 
             }
         });
     }
@@ -587,7 +573,9 @@ catch(Exception e )
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.JButton clear;
-    private javax.swing.JButton end;
+    private static javax.swing.JLabel clock;
+    private static javax.swing.JButton end;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JScrollPane jScrollPane1;
     private static javax.swing.JButton marks;
     private javax.swing.JButton next;

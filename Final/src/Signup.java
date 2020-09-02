@@ -8,7 +8,9 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.sql.SQLException;
 import javax.swing.*;
+import java.security.*;
 /**
  *
  * @author Acer
@@ -148,32 +150,82 @@ public static String accessor="";
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+// password hashing
+ static String getSecurePassword(String passwordToHash, byte[] salt)
+    {
+        String generatedPassword = null;
+        try {
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            md.update(salt);
+            byte[] bytes = md.digest(passwordToHash.getBytes());
+            StringBuilder sb = new StringBuilder();
+            for(int i=0; i< bytes.length ;i++)
+                sb.append(Integer.toString((bytes[i] & 0xff) + 0x100, 16).substring(1));
+            generatedPassword = sb.toString();
+        } 
+        catch (NoSuchAlgorithmException e) { 
+            e.printStackTrace(); 
+        }
+        return generatedPassword;
+    }
+     
+    //Add salt
+     static byte[] getSalt() throws NoSuchAlgorithmException, NoSuchProviderException
+    {
+        //SecureRandom sr = SecureRandom.getInstance("SHA1PRNG", "SUN");
+        byte[] salt = new byte[16];
+        //sr.nextBytes(salt);
+        for(int i=0;i<16;i++)
+            if(i%2==1)
+              salt[i] = 1;
+        return salt;
+    }
+
+    
+    
+    
+    
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-String password=String.valueOf(pass.getPassword());
+String password=String.valueOf(pass.getPassword());         
 String confirmPass=String.valueOf(confirm.getPassword());
 if(password.equals("") || confirmPass.equals("") || reg.getText().toString().equals(""))
     JOptionPane.showMessageDialog(null, "Enter all the fields");
 else if(confirmPass.equals(password))
 {
+    Connection connection=null;
     try{
         int registrationNumber=Integer.parseInt(reg.getText());
-     Class.forName("com.mysql.jdbc.Driver");
-       String url = "jdbc:mysql://localhost/softablitz";
-      Connection connection = DriverManager.getConnection(url, "root", "");
-      Statement st=connection.createStatement();
-        String query1 = "Insert Into student values(?,?,?);";
-       PreparedStatement preStat = connection.prepareStatement(query1);
-       preStat.setInt(1,registrationNumber );
-       preStat.setString(2, password);
-       preStat.setInt(3, 0);
-       preStat.executeUpdate();
+        Class.forName("com.mysql.jdbc.Driver");
+        String url = "jdbc:mysql://localhost/softablitz";
+        connection = DriverManager.getConnection(url, "root", "");
+        //Statement st=connection.createStatement();
+        String query1 = "Insert Into student values(?,?);";
+        PreparedStatement preStat = connection.prepareStatement(query1);
+        
+        byte[] salt = getSalt();
+        String securePassword = getSecurePassword(password, salt);
+        
+        
+        preStat.setInt(1,registrationNumber );
+        preStat.setString(2, securePassword);
+        preStat.executeUpdate();
         reg.setText(null);
         confirm.setText(null);
         pass.setText(null);
+        JOptionPane.showMessageDialog(null,"Successful SignUp. Please SignIn to continue.");
 }
-catch(Exception e )
-{ System.out.println("Exeution failed at line :-" + e);}
+    catch(SQLException ex)
+    {
+        JOptionPane.showMessageDialog(null,"You have already registered. Please SignIn to continue.");
+    }
+    catch(Exception e )
+    { 
+        System.out.println("Exeution failed at line :-" + e);
+    }
 
+    finally{
+            try{connection.close();} catch(Exception e) {}            
+        }    
 
 }
 else

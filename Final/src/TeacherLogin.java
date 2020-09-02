@@ -116,12 +116,13 @@ public class TeacherLogin extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void loginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loginActionPerformed
-try{
-    String name="",pass="";
-     Class.forName("com.mysql.jdbc.Driver");
-       String url = "jdbc:mysql://localhost/softablitz";
-      Connection connection = DriverManager.getConnection(url, "root", "");
-      Statement st=connection.createStatement();
+    Connection connection = null;
+    try{
+        String name="",pass="";
+        Class.forName("com.mysql.jdbc.Driver");
+        String url = "jdbc:mysql://localhost/softablitz";
+        connection = DriverManager.getConnection(url, "root", "");
+        Statement st=connection.createStatement();
         String query1 = "Select * from teacher;";
         PreparedStatement preStat = connection.prepareStatement(query1);
          ResultSet result = preStat.executeQuery();
@@ -129,23 +130,25 @@ try{
                name=result.getString("username");
                pass=result.getString("password");
           }
-          if((name.equals(username.getText())) &&  (pass.equals(password.getText())))
+          
+          byte[] salt = Signup.getSalt();
+          String securePassword = Signup.getSecurePassword(password.getText(), salt);
+          
+          if((name.equals(username.getText())) &&  (pass.equals(securePassword)))
           {
-              JOptionPane.showMessageDialog(null,"LogIn Successful");
-              dispose();
-              new Signup().accessor="teacher";
-              if( (username.getText().equals("admin"))  && password.getText().equals("admin") )
-                        JOptionPane.showMessageDialog(null,"It is highly recommended to change password!!");
-              Subjects subject= new Subjects();
-              subject.changePass.setEnabled(true);
-              subject.addSubject.setEnabled(true);
-              subject.access=1;
-    //          new QuizNumber().add.setEnabled(true);
-        subject.setVisible(true);
-        subject.display();
+            JOptionPane.showMessageDialog(null,"LogIn Successful");
+            dispose();
+            new Signup().accessor="teacher";
+            
+            Subjects subject= new Subjects();
+            subject.changePass.setEnabled(true);
+            subject.addSubject.setEnabled(true);
+            subject.access=1;
+            subject.setVisible(true);
+            subject.display();
           }
           else
-              JOptionPane.showMessageDialog(null,"LogIn Failed");
+            JOptionPane.showMessageDialog(null,"LogIn Failed. Please check login credentials and try again.");
           
           
         
@@ -155,7 +158,9 @@ catch(Exception e )
 {
     System.out.println("Exeution failed at line :-" + e);
 }
-
+finally{
+    try{connection.close();} catch(Exception e) {}            
+    }
         
 // TODO add your handling code here:
     }//GEN-LAST:event_loginActionPerformed

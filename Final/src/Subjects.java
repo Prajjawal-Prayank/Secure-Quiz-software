@@ -70,6 +70,7 @@ public int access=0;
         });
 
         jButton2.setText("Back");
+        jButton2.setEnabled(false);
         jButton2.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton2ActionPerformed(evt);
@@ -95,11 +96,11 @@ public int access=0;
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 259, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel2Layout.createSequentialGroup()
+                                .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 240, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGroup(jPanel2Layout.createSequentialGroup()
                                     .addComponent(proceed)
                                     .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(addSubject))
-                                .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 240, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                    .addComponent(addSubject))))
                         .addGap(0, 69, Short.MAX_VALUE))
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addContainerGap()
@@ -151,8 +152,8 @@ public int access=0;
 String newSubject="";
 try{
     String a=JOptionPane.showInputDialog("Enter subject name");
-if(a != null)
-    newSubject =a;
+    if(a != null)
+        newSubject =a;
 }
 catch(Exception e)
 {}
@@ -161,22 +162,39 @@ if(newSubject.equals(""))
     JOptionPane.showMessageDialog(null, "Enter a subject first");
 else
 {
-mod.addElement(newSubject);
-try{
-     Class.forName("com.mysql.jdbc.Driver");
-       String url = "jdbc:mysql://localhost/softablitz";
-      Connection connection = DriverManager.getConnection(url, "root", "");
-      Statement st=connection.createStatement();
-        String query1 ="INSERT INTO subjects VALUES (?,?);";
-        PreparedStatement preStat = connection.prepareStatement(query1);
-        preStat.setString(1, newSubject);
-        preStat.setString(2, null);
-         preStat.executeUpdate();
-  }
-  catch(Exception e)
-      {
-    System.out.println("Exeution failed at line :-" + e);
-}
+    Connection connection=null;
+    PreparedStatement preStat;
+    try{
+            Class.forName("com.mysql.jdbc.Driver");
+            String url = "jdbc:mysql://localhost/softablitz";
+            connection= DriverManager.getConnection(url, "root", "");
+            String query="Select distinct(subject) from subjects where subject=?;";
+            preStat = connection.prepareStatement(query);
+            preStat.setString(1,newSubject);
+            ResultSet result=preStat.executeQuery();
+            int count=0;
+            while(result.next())
+            {
+                count++;
+            }
+            if(count==0)
+            {
+                String query1 ="INSERT INTO subjects VALUES (?,?);";
+                preStat = connection.prepareStatement(query1);
+                preStat.setString(1, newSubject);
+                preStat.setString(2, null);
+                preStat.executeUpdate();
+                mod.addElement(newSubject);
+            }  
+            else
+                JOptionPane.showMessageDialog(null,"Subject already exists");
+      }
+      catch(Exception e){
+        System.out.println("Exeution failed at line :-" + e);
+    }
+      finally{
+        try{connection.close();} catch(Exception e) {}            
+       }
 
 }
         // TODO add your handling code here:
@@ -188,10 +206,13 @@ try{
             subjectName=list.getSelectedValue().toString();
             dispose();
             QuizNumber qn= new QuizNumber();
-        qn.setVisible(true);
-        if(access==1)
+            qn.setVisible(true);
+            if(access==1)
+            {
                 qn.add.setEnabled(true);
-        qn.display();
+                qn.delete.setEnabled(true);
+            }
+            qn.display();
         }
         
         
@@ -199,34 +220,46 @@ try{
     }//GEN-LAST:event_proceedActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-new TeacherLogin().setVisible(true);
-dispose();
+//new TeacherLogin().setVisible(true);
+//dispose();
         // TODO add your handling code here:
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void changePassActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_changePassActionPerformed
-try{
-    String oldPass=JOptionPane.showInputDialog("Enter old Password");
-    String newPass=JOptionPane.showInputDialog("Enter new Password");
-     Class.forName("com.mysql.jdbc.Driver");
-       String url = "jdbc:mysql://localhost/softablitz";
-      Connection connection = DriverManager.getConnection(url, "root", "");
-      Statement st=connection.createStatement();
-      String q="Update teacher set password ='" +newPass 
-              + "' where username='admin' ;";
-      String query1 = "Select password from teacher;";
+    Connection connection = null;
+    try{
+        String oldPass=JOptionPane.showInputDialog("Enter old Password");
+        Class.forName("com.mysql.jdbc.Driver");
+        String url = "jdbc:mysql://localhost/softablitz";
+        connection = DriverManager.getConnection(url, "root", "");
+        String q="Update teacher set password = ? where username='admin' ;";
+        String query1 = "Select password from teacher;";
         PreparedStatement psmt = connection.prepareStatement(query1);
-      PreparedStatement preStat = connection.prepareStatement(q);
-      ResultSet result = psmt.executeQuery();
-      result.next();
-      String old=result.getString("password");
-      if(old.equals(oldPass))
+        ResultSet result = psmt.executeQuery();
+        result.next();
+        String old=result.getString("password");
+        
+        byte[] salt = Signup.getSalt();
+        String securePassword = Signup.getSecurePassword(oldPass, salt);
+        
+        if(old.equals(securePassword))
+        {
+            String newPass=JOptionPane.showInputDialog("Enter new Password");
+            PreparedStatement preStat = connection.prepareStatement(q);
+            preStat.setString(1,Signup.getSecurePassword(newPass, salt));
             preStat.executeUpdate();
+            JOptionPane.showMessageDialog(null,"Password successfully updated");
+        }
+        else
+            JOptionPane.showMessageDialog(null,"Authentication failure!\nOld password doesn't match");
 }
-catch(Exception e )
+    catch(Exception e )
     {
-    System.out.println("Exeution failed at line :-" + e);
+        System.out.println("Exeution failed at line :-" + e);
     }
+    finally{
+        try{connection.close();} catch(Exception e) {}            
+       }
         // TODO add your handling code here:
     }//GEN-LAST:event_changePassActionPerformed
 
@@ -236,26 +269,30 @@ catch(Exception e )
     
     void display()   //to display quizes already present in database
     {
+        Connection connection =null;
         try{
             list.setModel(mod);
-    String subject="";
-     Class.forName("com.mysql.jdbc.Driver");
-       String url = "jdbc:mysql://localhost/softablitz";
-      Connection connection = DriverManager.getConnection(url, "root", "");
-      Statement st=connection.createStatement();
-        String query1 = "Select subject from subjects where quiz is NULL;";
-        PreparedStatement preStat = connection.prepareStatement(query1);
-         ResultSet result = preStat.executeQuery();
-          while(result.next()) {
-              subject=result.getString("subject");
-               mod.addElement(subject);
-          }
+            String subject="";
+            Class.forName("com.mysql.jdbc.Driver");
+            String url = "jdbc:mysql://localhost/softablitz";
+            connection= DriverManager.getConnection(url, "root", "");
+            Statement st=connection.createStatement();
+            String query1 = "Select DISTINCT(subject) from subjects order by subject";
+            PreparedStatement preStat = connection.prepareStatement(query1);
+            ResultSet result = preStat.executeQuery();
+            while(result.next()) {
+                subject=result.getString("subject");
+                mod.addElement(subject);
+            }
         
 }
-catch(Exception e )
+    catch(Exception e )
     {
-    System.out.println("Exeution failed at line :-" + e);
+        System.out.println("Exeution failed at line :-" + e);
     }
+    finally{
+        try{connection.close();} catch(Exception e) {}            
+    }        
 }
     
     
